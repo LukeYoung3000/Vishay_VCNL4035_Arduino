@@ -6,9 +6,10 @@
  * @copyright	This code is public domain but you buy me a beer if you use
  * this and we meet someday (Beerware license).
  *
- * This library interfaces the XYZ Interactive ZX Sensor to Arduino over I2C.
+ * This library interfaces the VCNL4035 ambient light and proximity sensor to
+ * Arduino over I2C.
  * The library relies on the Arduino Wire (I2C) library. To use the library,
- * instantiate a ZX_Sensor object, call init(), and call the desired
+ * instantiate a VCNL4035 object, call init(), and call the desired
  * functions.
  */
  
@@ -18,7 +19,7 @@
 #include <Arduino.h>
 
 /* Debug */
-#define DEBUG               1
+#define DEBUG 1
 
 /* Acceptable VCNL3045 version */
 // Add version numbers!!
@@ -41,6 +42,8 @@
 class VCNL4035 {
 public:
 
+	uint16_t readVersion();
+
 	/* Bit manipulation */
 	// bool setRegisterBit(uint8_t reg, uint8_t msb_lsb, uint8_t bit);
 	// bool clearRegisterBit(uint8_t reg, uint8_t msb_lsb, uint8_t bit);
@@ -52,6 +55,8 @@ public:
 	bool wireWriteReg(uint8_t reg, uint8_t low_byte, uint8_t high_byte);
 	bool wireReadReg(uint8_t reg, uint16_t &val);
 	uint16_t wireReadReg_2(uint8_t reg);
+	
+	
 	
 private:
 

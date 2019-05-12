@@ -1,14 +1,15 @@
 /**
- * @file    ZX_Sensor.cpp
- * @brief   Library for the SparkFun/GestureSense ZX Sensor
- * @author  Shawn Hymel (SparkFun Electronics)
+ * @file    VCNL4035_Lib.h
+ * @brief   Library for the VCNL3045
+ * @author  Luke Young (L S Young Electrical)
  *
  * @copyright	This code is public domain but you buy me a beer if you use
  * this and we meet someday (Beerware license).
  *
- * This library interfaces the XYZ Interactive ZX Sensor to Arduino over I2C.
+ * This library interfaces the VCNL4035 ambient light and proximity sensor to
+ * Arduino over I2C.
  * The library relies on the Arduino Wire (I2C) library. To use the library,
- * instantiate a ZX_Sensor object, call init(), and call the desired
+ * instantiate a VCNL4035 object, call init(), and call the desired
  * functions.
  */
  
@@ -19,11 +20,11 @@
 #include "VCNL4035_Lib.h"
 
 
-uint16_t VCNL3045::readVersion()
+uint16_t VCNL4035::readVersion()
 {
 	uint16_t ver = 0;
-	//wireReadReg(VISHAY_VERSION_REG, ver);
-	ver = wireReadReg_2(VISHAY_VERSION_REG);
+	wireReadReg(VISHAY_VERSION_REG, ver);
+	//ver = wireReadReg_2(VISHAY_VERSION_REG);
 	
 	#if DEBUG
 	Serial.print("VCNL4035 Version: ");
