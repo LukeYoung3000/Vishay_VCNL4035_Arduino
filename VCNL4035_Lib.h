@@ -36,31 +36,34 @@
 #define PS3_DATA_REG  			0x0A
 #define VISHAY_VERSION_REG 		0x0E
 
+#define H_BYTE					1
+#define L_BYTE					0
 
 
-/* ZX Sensor Class */
+
+/* VCNL4035 Sensor Class */
 class VCNL4035 {
 public:
 
+	/* High level read functions */
 	uint16_t readVersion();
-
+	bool readPsData(uint16_t *val);
+	
 	/* Bit manipulation */
-	// bool setRegisterBit(uint8_t reg, uint8_t msb_lsb, uint8_t bit);
-	// bool clearRegisterBit(uint8_t reg, uint8_t msb_lsb, uint8_t bit);
-	// bool writeRegisterBits(uint8_t reg, uint8_t msb_lsb, \
-							uint8_t start_bit, uint8_t end_bit, uint8_t val);
+	bool writeRegisterBits(uint8_t reg, uint8_t msb_lsb, uint8_t start_bit, \
+							uint8_t end_bit, uint8_t val);
 							
 	/* Raw I2C reads and writes */
     bool wireWriteByte(uint8_t val);
 	bool wireWriteReg(uint8_t reg, uint8_t low_byte, uint8_t high_byte);
 	bool wireReadReg(uint8_t reg, uint16_t &val);
-	uint16_t wireReadReg_2(uint8_t reg);
+	
 	
 	
 	
 private:
 
-	uint8_t addr_ = VISHAY_I2C_ADDR;
+	 uint8_t addr_ = VISHAY_I2C_ADDR;
 
 };
 
