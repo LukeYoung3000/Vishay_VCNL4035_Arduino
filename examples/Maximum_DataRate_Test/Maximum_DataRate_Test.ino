@@ -3,12 +3,12 @@ Maximum_DataRate_Test.ino
 VCNL4035X01 IC
 Luke Young
 13/05/2019
-https://github.com/ fin this soon
+https://github.com/LukeYoung3000/Vishay_VCNL4035_Arduino
 
 Tests the fastest data rate possible using gesture mode on the VCNL4035.
 The program uses an ISR to read in data from the VCNL and set a trigger
-to intiate the collection of the next set of sensor data. Put an oscloscope
-probe between gnd and the VCNL4035 INT Pin to determine the maximum datarate.
+to initiate the collection of the next set of sensor data. Put an oscilloscope
+probe between GRD and the VCNL4035 INT Pin to determine the maximum data rate.
 
 Hardware Connections:
  
@@ -44,6 +44,8 @@ VCNL4035 vcnl;
 // Variable to store proximity data from all three sensors
 uint16_t proxy_data[3] = {0};
 
+int cnt = 0;
+
 void setup()
 {
 
@@ -78,14 +80,25 @@ void ISR_vcnl()
   interrupts();
 
   // Read Regs:
-  vcnl.readPsData(ps);
+  vcnl.readPsData(proxy_data);
 
   // Print Data:
-  //Serial.print(ps[0]); Serial.print(", ");
-  //Serial.print(ps[1]); Serial.print(", ");
-  //Serial.println(ps[2]);
-
-  // Clear vcnl interrupt regester
+  /*
+  Serial.print(proxy_data[0]); Serial.print(", ");
+  Serial.print(proxy_data[1]); Serial.print(", ");
+  Serial.println(proxy_data[2]);
+  */
+  
+  // Print Time:
+  /*
+  if(cnt++ >= 999)
+  {
+    cnt = 0;
+    Serial.println(millis());
+  }
+  */
+  
+  // Clear vcnl interrupt register:
   vcnl.readInterruptFlags();
 
   // Reset gesture trigger:

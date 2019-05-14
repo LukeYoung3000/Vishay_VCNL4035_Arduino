@@ -3,14 +3,14 @@ Set_Register_Test.ino
 VCNL4035X01 IC
 Luke Young
 13/05/2019
-https://github.com/ fin this soon
+https://github.com/LukeYoung3000/Vishay_VCNL4035_Arduino
 
 Shows how to set the proximity integration time and led current of the
 VCNL4035. 
 
 Tests the "setPsIntegrationTime" and "setLedCurrent" functions from VCNL4035_Lib
 to change the input parameters to these functions see VCNL4035_Lib.h in the
-enum defintions for more valid options.
+enum definitions for more valid options.
 
 Hardware Connections:
  
