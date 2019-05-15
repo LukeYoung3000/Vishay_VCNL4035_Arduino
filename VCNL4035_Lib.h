@@ -30,18 +30,26 @@
 #define VISHAY_I2C_ADDR 0x60
 
 /* VCNL4035 I2C register addresses */
-#define PS_CONF_1_2 0x03
-#define PS_CONF_3_MS 0x04
-#define RES_INT_FLAGS 0x0D
-#define PS1_DATA_REG 0x08
-#define PS2_DATA_REG 0x09
-#define PS3_DATA_REG 0x0A
-#define VISHAY_VERSION_REG 0x0E
+#define ALS_CONF_1_2 		0x00
+#define ALS_THDH_1_2 		0x01
+#define ALS_THDL_1_2 		0x02
+#define PS_CONF_1_2 		0x03
+#define PS_CONF_3_MS 		0x04
+#define PS_CANC_L_M 		0x05
+#define PS_THDL_L_M 		0x06
+#define PS_THDH_L_M 		0x07
+#define PS1_DATA_REG 		0x08
+#define PS2_DATA_REG 		0x09
+#define PS3_DATA_REG 		0x0A
+#define ALS_DATA_L_M 		0x0B
+#define WHITE_DATA_L_M 		0x0C
+#define RES_INT_FLAGS 		0x0D
+#define VISHAY_VERSION_REG 	0x0E
 
 #define H_BYTE 1
 #define L_BYTE 0
 
-/* VCNL4035 register parrameters */
+/* VCNL4035 register parameters */
 typedef enum VCNL4035_PS_CONF_1
 {
 	PS_SD = 0,

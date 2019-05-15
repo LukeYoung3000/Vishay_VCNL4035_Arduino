@@ -134,9 +134,9 @@ uint8_t VCNL4035::readInterruptFlags()
  ******************************************************************************/
 
 /**
- * @brief Sets the proximity sensor intergration time.
+ * @brief Sets the proximity sensor integration time.
  *
- * @param[in] Value of new intergration time, See the VCNL4035_PS_IT enum
+ * @param[in] Value of new integration time, See the VCNL4035_PS_IT enum
  * for valid inputs.
  */
 void VCNL4035::setPsIntegrationTime(VCNL4035_PS_IT int_time)
@@ -246,8 +246,8 @@ bool VCNL4035::wireReadReg(uint8_t reg, uint16_t &val)
 
 /**
  * @brief Writes a value to a range of bits (between start_bit and end_bit)
- * whithen a VCNL regester.
- * Note: To set one bit only let, start_bit = end_bit.
+ * whiten a VCNL register.
+ * Note: To set one bit only, let start_bit = end_bit.
  *
  * @param[in] reg: the register to read and write back to
  * @param[in] msb_lsb: Set the byte that your bit range is in (H_BYTE or L_BYTE)
@@ -290,12 +290,12 @@ bool VCNL4035::writeRegisterBits(uint8_t reg, uint8_t msb_lsb,
 		value = value << 8;
 	}
 
-	/* Create new regester value */
+	/* Create new register value */
 	uint16_t new_value = 0;
 	new_value = current_val & (~mask);
 	new_value = new_value + value;
 
-	/* Seperate into high and low bytes */
+	/* Separate into high and low bytes */
 	uint16_t low = new_value & 0xff;
 	uint16_t high = new_value >> 8;
 
