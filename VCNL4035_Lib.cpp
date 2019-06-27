@@ -18,33 +18,127 @@
 
 #include "VCNL4035_Lib.h"
 
-void VCNL4035::init()
+VCNL4035::VCNL4035(void)
+{
+	/* Gesture Mode Default Settings */
+	gesture_mode.ps_conf_1.ps_it = PS_IT_50us;
+	gesture_mode.ps_conf_2.ps_hd = PS_HD_16_BIT;
+	gesture_mode.ps_conf_2.gesture_mode = GESTURE_MODE_ENABLE;
+	gesture_mode.ps_conf_2.gesture_int_en = GESTURE_INT_EN_ENABLE;
+	gesture_mode.ps_conf_3.ps_af = PS_AF_ON;
+	gesture_mode.ps_ms.led_i = LED_I_50_mA;
+	gesture_mode.ps_thdl = 0;
+	gesture_mode.ps_thdh = 0xffff;
+
+	/* Proximity Mode Default Settings */
+	ps_mode.ps_conf_1.ps_it = PS_IT_50us;
+	ps_mode.ps_conf_1.ps_pers = PS_PERS_4_READING;
+	ps_mode.ps_conf_1.ps_duty = PS_DUTY_1_320;
+	ps_mode.ps_conf_2.ps_int = PS_INT_CLOSING;
+	ps_mode.ps_conf_2.ps_ns = PS_NS_TWO_STEP_MODE_TIMES_1;
+	ps_mode.ps_conf_2.ps_hd = PS_HD_16_BIT;
+	ps_mode.ps_conf_2.ps_gain = PS_GAIN_TWO_STEP_MODE;
+	ps_mode.ps_conf_3.ired_select = IRED_SELECT_1;
+	ps_mode.ps_ms.led_i = LED_I_50_mA;
+	ps_mode.ps_ms.ps_sc_cur = PS_SC_CUR_TYPICAL_TIMES_1;
+	ps_mode.ps_thdl = 15;
+	ps_mode.ps_thdh = 50;
+}
+
+void VCNL4035::init(VCNL4035_MODES mode)
 {
 	/* Initialize I2C */
 	Wire.begin();
 
-	/* PS_CONF_1:
-	Set Integration Time to 4T (Bit 3:2:1 = 1:1:0)
-	Turn on PS (Bit 0 = 0) */
-	ps_conf_1 = 0x0c;
+	/* Sets Operational Mode */
+	switch (mode)
+	{
+	case GESTURE:
+		setGestureMode();
+		break;
 
-	/* PS_CONF_2:
-	Turn on GESTURE_INT_EN (Bit 7 = 1)
-	Turn on GESTURE_MODE (Bit 6 = 1)
-	Set PS_Gain to two step mode (Bit 5:4 = 0:0)
-	Set PS_HD to 16bit (Bit 3 = 1) */
-	ps_conf_2 = 0xc4;
+	case PROXIMITY_SENSOR:
+		setPSMode();
+		break;
 
-	/* PS_CONF_3:
-	Turn on PS_AF (active force mode) (Bit 3 = 1) */
-	ps_conf_3 = 0x08;
+	default:
+		setPSMode();
+	}
 
-	/* PS_MS:
-	Set LED Current (LED_I) to 200mA (Bit 0:1:2 = 1:1:1) */
-	ps_ms = 0x07;
+	/* Gather Backround Noise Data From VCNL */
+	// We will need the users Int time and LED current in order to find this.
+}
 
+/*******************************************************************************
+ * High Level Settings Functions
+ ******************************************************************************/
+
+/**
+ * @brief Sets VCNL4035 proximity registers to the values specified by "set".
+ */
+void VCNL4035::updatePsSettings(ps_settings_t set)
+{
+	// PS_CONF_1:
+	uint8_t ps_sd = (set.ps_conf_1.ps_sd << PS_SD);
+	uint8_t ps_it = (set.ps_conf_1.ps_it << PS_IT_START);
+	uint8_t ps_pers = (set.ps_conf_1.ps_pers << PS_PRES_START);
+	uint8_t ps_duty = (set.ps_conf_1.ps_duty << PS_DUTY_START);
+	uint8_t ps_conf_1 = ps_sd + ps_it + ps_pers + ps_duty;
+
+	// PS_CONF_2:
+	uint8_t ps_int = (set.ps_conf_2.ps_int << PS_INT_START);
+	uint8_t ps_ns = (set.ps_conf_2.ps_ns << PS_NS);
+	uint8_t ps_hd = (set.ps_conf_2.ps_hd << PS_HD);
+	uint8_t ps_gain = (set.ps_conf_2.ps_gain << PS_GAIN_START);
+	uint8_t gesture_mode = (set.ps_conf_2.gesture_mode << GESTURE_MODE);
+	uint8_t gesture_int_en = (set.ps_conf_2.gesture_int_en << GESTURE_INT_EN);
+	uint8_t ps_conf_2 = ps_int + ps_ns + ps_hd + ps_gain + gesture_mode + gesture_int_en;
+
+	// PS_CONF_3:
+	uint8_t ps_sc_en = (set.ps_conf_3.ps_sc_en << PS_SC_EN);
+	uint8_t ps_ms_command = (set.ps_conf_3.ps_ms << PS_MS);
+	uint8_t ps_trig = (set.ps_conf_3.ps_trig << PS_TRIG);
+	uint8_t ps_af = (set.ps_conf_3.ps_af << PS_AF);
+	uint8_t ps_smart_pers = (set.ps_conf_3.ps_smart_pers << PS_SMART_PERS);
+	uint8_t ired_select = (set.ps_conf_3.ired_select << IRED_SELECT_START);
+	uint8_t led_i_low = (set.ps_conf_3.led_i_low << LED_I_LOW);
+	uint8_t ps_conf_3 = ps_sc_en + ps_ms_command + ps_trig + ps_af + ps_smart_pers + ired_select + led_i_low;
+
+	// PS_MS:
+	uint8_t led_i = (set.ps_ms.led_i << LED_I_START);
+	uint8_t ps_spo = (set.ps_ms.ps_spo << PS_SPO);
+	uint8_t ps_sp = (set.ps_ms.ps_sp << PS_SP);
+	uint8_t ps_sc_cur = (set.ps_ms.ps_sc_cur << PS_SC_CUR_START);
+	uint8_t ps_ms = led_i + ps_spo + ps_sp + ps_sc_cur;
+
+	// PS_THDL:
+	uint8_t ps_thdl_l = (set.ps_thdl & 0xff);
+	uint8_t ps_thdl_m = (set.ps_thdl >> 8);
+
+	// PS_THDH:
+	uint8_t ps_thdh_l = (set.ps_thdh & 0xff);
+	uint8_t ps_thdh_m = (set.ps_thdh >> 8);
+
+	wireWriteReg(PS_THDL_L_M, ps_thdl_l, ps_thdl_m);
+	wireWriteReg(PS_THDH_L_M, ps_thdh_l, ps_thdh_m);
 	wireWriteReg(PS_CONF_1_2, ps_conf_1, ps_conf_2);
 	wireWriteReg(PS_CONF_3_MS, ps_conf_3, ps_ms);
+}
+
+/**
+ * @brief Sets VCNL4035 registers to gesture mode
+ */
+void VCNL4035::setGestureMode()
+{
+	updatePsSettings(gesture_mode);
+}
+
+/**
+ * @brief Sets VCNL4035 registers to normal proximity mode
+ */
+void VCNL4035::setPSMode()
+{
+	updatePsSettings(ps_mode);
 }
 
 /*******************************************************************************
@@ -164,6 +258,29 @@ void VCNL4035::setPsTrigger()
 	writeRegisterBits(PS_CONF_3_MS, L_BYTE, 2, 2, 1);
 	//ps_conf_3 = 0x0c;
 	//wireWriteReg(PS_CONF_3_MS, ps_conf_3, ps_ms);
+}
+
+/**
+ * @brief Clears the interrupt flag on the VCNL that is set when an object is 
+ * detected closer than the high thershold value.
+ */
+void VCNL4035::clearPsCloseFlag()
+{
+	writeRegisterBits(RES_INT_FLAGS, H_BYTE, PS_IF_CLOSE, PS_IF_CLOSE, 0);
+}
+
+void VCNL4035::setPsInterruptThresholdLow(uint16_t val)
+{
+	uint8_t ps_thdl_l = (val & 0xff);
+	uint8_t ps_thdl_m = (val >> 8);
+	wireWriteReg(PS_THDL_L_M, ps_thdl_l, ps_thdl_m);
+}
+
+void VCNL4035::setPsInterruptThresholdHigh(uint16_t val)
+{
+	uint8_t ps_thdh_l = (val & 0xff);
+	uint8_t ps_thdh_m = (val >> 8);
+	wireWriteReg(PS_THDH_L_M, ps_thdh_l, ps_thdh_m);
 }
 
 /*******************************************************************************

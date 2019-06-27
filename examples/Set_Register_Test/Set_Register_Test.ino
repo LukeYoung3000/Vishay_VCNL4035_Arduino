@@ -3,7 +3,7 @@ Set_Register_Test.ino
 VCNL4035X01 IC
 Luke Young
 13/05/2019
-https://github.com/ fin this soon
+https://github.com/LukeYoung3000/Vishay_VCNL4035_Arduino
 
 Shows how to set the proximity integration time and led current of the
 VCNL4035. 
@@ -42,17 +42,17 @@ VCNL4035 vcnl;
 
 void setup()
 {
-  vcnl.init();
-  
+  vcnl.init(GESTURE);
+
   Serial.begin(115200);
 
   Serial.println("SET PS_IT TEST: ");
 
-  // Change the Integration time to 8T
-  vcnl.setPsIntegrationTime(PS_IT_8T);
+  // Change the Integration time to 400us (8T)
+  vcnl.setPsIntegrationTime(PS_IT_400us);
   delay(100);
-  // Change the Integration time to 2.5T
-  vcnl.setPsIntegrationTime(PS_IT_2_5T);
+  // Change the Integration time to 125us (2.5T)
+  vcnl.setPsIntegrationTime(PS_IT_125us);
 
   Serial.println("SET LED_I TEST: ");
 
