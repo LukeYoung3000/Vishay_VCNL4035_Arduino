@@ -64,6 +64,9 @@ public:
 	ps_settings_t gesture_mode = {{0}, {0}, {0}, {0}, 0};
 	ps_settings_t ps_mode = {{0}, {0}, {0}, {0}, 0};
 
+	/* Backround Noise Canceling */
+	uint16_t average_noise[3] = {0, 0, 0};
+
 private:
 	uint8_t addr_ = VISHAY_I2C_ADDR;
 	//	uint8_t ps_conf_1 = 0, ps_conf_2 = 0, ps_conf_3 = 0, ps_ms = 0;

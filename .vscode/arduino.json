@@ -1,5 +1,5 @@
 {
     "board": "arduino:avr:uno",
-    "sketch": "examples\\Proximity_Mode_Test\\Proximity_Mode_Test.ino",
+    "sketch": "examples\\Gesture_Timeout\\Gesture_Timeout.ino",
     "port": "COM7"
 }
