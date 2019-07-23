@@ -17,7 +17,7 @@
 #define VCNL4035_Lib_H
 
 #include <Arduino.h>
-#include "vcnl4035_Defs.h"
+#include "VCNL4035_Defs.h"
 
 /* VCNL4035 Sensor Class */
 class VCNL4035
@@ -33,8 +33,8 @@ public:
 	void setPSMode();
 
 	/* High level read functions */
+	void readGestureData(uint16_t *val);
 	uint16_t readVersion();
-	bool readPsData(uint16_t *val);
 	uint8_t readInterruptFlags();
 
 	/* High level write functions */
@@ -51,14 +51,14 @@ public:
 	// void setPsActiveForce(VCNL4035_PS_AF on_off);
 	// void setPsIredSelect(VCNL4035_IRED_SELECT ired);
 
-	/* Bit manipulation */
-	bool writeRegisterBits(uint8_t reg, uint8_t msb_lsb, uint8_t start_bit,
-						   uint8_t end_bit, uint8_t val);
-
-	/* Raw I2C reads and writes */
-	bool wireWriteByte(uint8_t val);
-	bool wireWriteReg(uint8_t reg, uint8_t low_byte, uint8_t high_byte);
-	bool wireReadReg(uint8_t reg, uint16_t &val);
+	/* Raw I2C reads and writes (Hardware Specfic Functions)*/
+	void i2cBegin();
+	bool i2cWriteRegBits(uint8_t reg, uint8_t msb_lsb, uint8_t start_bit,
+						 uint8_t end_bit, uint8_t val);
+	bool i2cWriteReg(uint8_t reg, uint8_t low_byte, uint8_t high_byte);
+	bool i2cWriteByte(uint8_t val);
+	bool i2cReadReg(uint8_t reg, uint16_t &val);
+	bool i2cReadPsData(uint16_t *val);
 
 	/* Proximity Mode Settings */
 	ps_settings_t gesture_mode = {{0}, {0}, {0}, {0}, 0};

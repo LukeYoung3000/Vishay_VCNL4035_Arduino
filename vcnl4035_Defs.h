@@ -13,8 +13,8 @@
  * functions.
  */
 
-#ifndef vcnl_4035_Defs_H
-#define vcnl_4035_Defs_H
+#ifndef VCNL_4035_Defs_H
+#define VCNL_4035_Defs_H
 
 #include <Arduino.h>
 
@@ -342,4 +342,4 @@ typedef struct ps_settings_s
     uint16_t ps_thdh;
 } ps_settings_t;
 
-#endif /* vcnl4035_Defs_H */
+#endif /* VCNL4035_Defs_H */

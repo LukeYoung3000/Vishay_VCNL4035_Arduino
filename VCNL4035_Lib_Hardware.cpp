@@ -1,12 +1,17 @@
 #include <Arduino.h>
 #include <Wire.h>
 
-#include "VCNL4035_I2C.h"
+#include "VCNL4035_Lib.h"
 
 /*******************************************************************************
  * Raw I2C Reads and Writes
  * Taken and Modified from the ZX_Sensor library from Spark-fun
  ******************************************************************************/
+
+void VCNL4035::i2cBegin()
+{
+    Wire.begin();
+}
 
 /**
  * @brief Writes a single byte to the I2C device (no register)
@@ -159,6 +164,51 @@ bool VCNL4035::i2cWriteRegBits(uint8_t reg, uint8_t msb_lsb,
     Serial.print("high:        ");
     Serial.println(high, BIN);
     Serial.println("Exit: VCNL4035::writeRegisterBits");
+#endif
+
+    return true;
+}
+
+/**
+ * @brief Reads all 3 PS data registers.
+ * Note: This function only works correctly if VCNL is in "Gesture Mode".
+ *
+ * @param[out] val: pointer to the 0th element of an array of 3 unit16_t's
+ *					val[0] will contain value at PS1_DATA_REG
+ *					val[1] will contain value at PS2_DATA_REG
+ *					val[2] will contain value at PS3_DATA_REG
+ * @return True if successful read operation. False otherwise.
+ */
+bool VCNL4035::i2cReadPsData(uint16_t *val)
+{
+    uint8_t bytes[10] = {0};
+    uint8_t i = 0;
+
+    Wire.beginTransmission(addr_);
+
+    /* Read from register */
+    Wire.requestFrom(addr_, uint8_t(6));
+    while (Wire.available())
+    {
+        // Possible over flow errors here
+        bytes[i] = Wire.read();
+        i++;
+    }
+
+    uint16_t var = 0;
+    for (i = 0; i < 6; i++)
+    {
+        var = (bytes[2 * i + 1] << 8);
+        val[i] = var + bytes[2 * i];
+    }
+
+#if VCNL4035_DEBUG
+    Serial.println("VCNL4035::readPsData");
+    Serial.print(val[0]);
+    Serial.print(", ");
+    Serial.print(val[1]);
+    Serial.print(", ");
+    Serial.println(val[2]);
 #endif
 
     return true;
