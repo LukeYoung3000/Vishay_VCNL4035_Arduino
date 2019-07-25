@@ -5,143 +5,82 @@
  *
  * @copyright	This code is public domain but you buy me a beer if you use
  * this and we meet someday (Beerware license).
- *
- * This library interfaces the Vishay VCNL4035 ambient light and proximity
- * sensor to Arduino over I2C.
- * The library relies on the Arduino Wire (I2C) library. To use the library,
- * instantiate a VCNL4035 object, call init(), and call the desired
- * functions.
+ * 
+ * The libray provides a class to interface with the Vishay VCNL4035 ambient
+ * light and proximity sensor and abstact the I2C communications from the
+ * software developer. The accompanying .cpp files are seperated
+ * into "VCNL4035_Lib.cpp" and "VCNL4035_Lib_Hardware.cpp".
+ * "VCNL4035_Lib.cpp" contains the portable functions the libray uses.
+ * "VCNL4035_Lib_Hardware.cpp" contains all the hardware specific I2C functions.
+ * Currently this file has been designed to work with the Arduino
+ * Wire librays I2C interface however, it can be adapted to suit any micro
+ * controllers I2C functions.
  */
 
 #ifndef VCNL4035_Lib_H
 #define VCNL4035_Lib_H
 
 #include <Arduino.h>
-
-/* Debug */
-#define VCNL4035_DEBUG 0
-
-
-/* Acceptable VCNL4035 version */
-#define VISHAY_VERSION_LSB 0x80
-#define VISHAY_VERSION_LSB 0x00
-
-/* VCNL4035 I2C slave address */
-#define VISHAY_I2C_ADDR 0x60
-
-/* VCNL4035 I2C register addresses */
-#define PS_CONF_1_2 0x03
-#define PS_CONF_3_MS 0x04
-#define RES_INT_FLAGS 0x0D
-#define PS1_DATA_REG 0x08
-#define PS2_DATA_REG 0x09
-#define PS3_DATA_REG 0x0A
-#define VISHAY_VERSION_REG 0x0E
-
-#define H_BYTE 1
-#define L_BYTE 0
-
-/* VCNL4035 register parrameters */
-typedef enum VCNL4035_PS_CONF_1
-{
-	PS_SD = 0,
-	PS_IT_START = 1,
-	PS_IT_END = 3,
-	PS_PRES_START = 4,
-	PS_PRES_END = 5,
-	PS_DUTY_START = 6,
-	PS_DUTY_END = 7,
-} VCNL4035_PS_CONF_1;
-
-typedef enum VCNL4035_PS_CONF_2
-{
-	PS_INT_START = 0,
-	PS_INT_END = 1,
-	PS_NS = 2,
-	PS_HD = 3,
-	PS_GAIN_START = 4,
-	PS_GAIN_END = 5,
-	GESTURE_MODE = 6,
-	GESTURE_INT_EN = 7,
-} VCNL4035_PS_CONF_2;
-
-typedef enum VCNL4035_PS_CONF_3
-{
-	PS_SC_EN = 0,
-	PS_MS = 1,
-	PS_TRIG = 2,
-	PS_AF = 3,
-	PS_SMART_PERS = 4,
-	IRED_SELECT_START = 5,
-	IRED_SELECT_END = 6,
-	LED_I_LOW = 7,
-} VCNL4035_PS_CONF_3;
-
-typedef enum VCNL4035_PS_MS
-{
-	LED_I_START = 0,
-	LED_I_END = 2,
-	PS_SPO = 3,
-	PS_SP = 4,
-	PS_SC_CUR_START = 5,
-	PS_SC_CUR_END = 6,
-	RESERVED = 7,
-} VCNL4035_PS_MS;
-
-/* Proximity Sensor Integration (T = 50 micro sec) */
-typedef enum VCNL4035_PS_IT
-{
-	PS_IT_1T = 0,
-	PS_IT_1_5T = 1,
-	PS_IT_2T = 2,
-	PS_IT_2_5T = 3,
-	PS_IT_3T = 4,
-	PS_IT_3_5T = 5,
-	PS_IT_4T = 6,
-	PS_IT_8T = 7,
-} VCNL4035_PS_IT;
-
-/* Proximity Sensor LED Current */
-typedef enum VCNL4035_LED_I
-{
-	LED_I_50_mA = 0,
-	LED_I_75_mA = 1,
-	LED_I_100_mA = 2,
-	LED_I_120_mA = 3,
-	LED_I_140_mA = 4,
-	LED_I_160_mA = 5,
-	LED_I_180_mA = 6,
-	LED_I_200_mA = 7,
-} VCNL4035_LED_I;
+#include "VCNL4035_Defs.h"
 
 /* VCNL4035 Sensor Class */
 class VCNL4035
 {
 public:
-	void init();
+	/* Setup Functions */
+	VCNL4035();
+	void init(VCNL4035_MODES mode);
+
+	/* High Level Settings Functions */
+	void updatePsSettings(ps_settings_t set);
+	void setGestureMode();
+	void setPSMode();
 
 	/* High level read functions */
+	void readGestureData(uint16_t *val);
+	// Make the functions bellow in the .cpp file
+	// uint16_t readPS1Data();
+	// uint16_t readPS2Data();
+	// uint16_t readPS3Data();
 	uint16_t readVersion();
-	bool readPsData(uint16_t *val);
 	uint8_t readInterruptFlags();
 
 	/* High level write functions */
 	void setPsIntegrationTime(VCNL4035_PS_IT int_time);
 	void setLedCurrent(VCNL4035_LED_I led_current);
 	void setPsTrigger();
+	void clearPsCloseFlag();
+	void setPsInterruptThresholdLow(uint16_t val);
+	void setPsInterruptThresholdHigh(uint16_t val);
+	// Make the functions bellow in the .cpp file
+	// void setPsDutyCycle(VCNL4035_PS_DUTY duty_cycle);
+	// void setPsShutdown(VCNL4035_PS_SD shutdown);
+	// void setPsDataResolution(VCNL4035_PS_HD resolution);
+	// void setPsActiveForce(VCNL4035_PS_AF on_off);
+	// void setPsIredSelect(VCNL4035_IRED_SELECT ired);
 
-	/* Bit manipulation */
-	bool writeRegisterBits(uint8_t reg, uint8_t msb_lsb, uint8_t start_bit,
-						   uint8_t end_bit, uint8_t val);
-
+	/* Hardware Specfic Functions (VCNL4035_Lib_Hardware.cpp) */
 	/* Raw I2C reads and writes */
-	bool wireWriteByte(uint8_t val);
-	bool wireWriteReg(uint8_t reg, uint8_t low_byte, uint8_t high_byte);
-	bool wireReadReg(uint8_t reg, uint16_t &val);
+	void i2cBegin();
+	bool i2cWriteRegBits(uint8_t reg, uint8_t msb_lsb, uint8_t start_bit,
+						 uint8_t end_bit, uint8_t val);
+	bool i2cWriteReg(uint8_t reg, uint8_t low_byte, uint8_t high_byte);
+	bool i2cWriteByte(uint8_t val);
+	bool i2cReadReg(uint8_t reg, uint16_t &val);
+	bool i2cReadPsData(uint16_t *val);
+
+	/* Hardware Specfic Functions (VCNL4035_Lib_Hardware.cpp) */
+	/* Hardware Interrupt Handling */
+	bool readInt();
+	void setIntPin(uint8_t int_pin);
+
+	/* Proximity/Gesture Mode Settings */
+	ps_settings_t gesture_mode = {{0}, {0}, {0}, {0}, 0};
+	ps_settings_t ps_mode = {{0}, {0}, {0}, {0}, 0};
 
 private:
 	uint8_t addr_ = VISHAY_I2C_ADDR;
-	uint8_t ps_conf_1 = 0, ps_conf_2 = 0, ps_conf_3 = 0, ps_ms = 0;
+	uint8_t int_pin_ = 0;
 };
 
 #endif /* VCNL4035_Lib_H */

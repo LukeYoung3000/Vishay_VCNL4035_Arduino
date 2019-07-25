@@ -7,8 +7,8 @@ https://github.com/LukeYoung3000/Vishay_VCNL4035_Arduino
 
 Tests the fastest data rate possible using gesture mode on the VCNL4035.
 The program uses an ISR to read in data from the VCNL and set a trigger
-to initiate the collection of the next set of sensor data. Put an oscilloscope
-probe between GRD and the VCNL4035 INT Pin to determine the maximum data rate.
+to instantiate the collection of the next set of sensor data. Put an oscilloscope
+probe between gnd and the VCNL4035 INT Pin to determine the maximum data rate.
 
 Hardware Connections:
  
@@ -52,9 +52,9 @@ void setup()
   Serial.begin(115200);
 
   // Set up VCNL registers
-  vcnl.init();
-  // Change the Integration time to the smallest possible time (1T)
-  vcnl.setPsIntegrationTime(PS_IT_1T);
+  vcnl.init(GESTURE);
+  // Change the Integration time to the largest possible time (8T)
+  vcnl.setPsIntegrationTime(PS_IT_400us);
 
   // Set up an interrupt on Arduino Pin 2 (VCNL INT pin goes low when data is ready)
   pinMode(INTERRUPT_PIN, INPUT_PULLUP);
@@ -80,25 +80,16 @@ void ISR_vcnl()
   interrupts();
 
   // Read Regs:
-  vcnl.readPsData(proxy_data);
+  vcnl.readGestureData(proxy_data);
 
   // Print Data:
-  /*
-  Serial.print(proxy_data[0]); Serial.print(", ");
-  Serial.print(proxy_data[1]); Serial.print(", ");
+  Serial.print(proxy_data[0]);
+  Serial.print(" , ");
+  Serial.print(proxy_data[1]);
+  Serial.print(" , ");
   Serial.println(proxy_data[2]);
-  */
-  
-  // Print Time:
-  /*
-  if(cnt++ >= 999)
-  {
-    cnt = 0;
-    Serial.println(millis());
-  }
-  */
-  
-  // Clear vcnl interrupt register:
+
+  // Clear vcnl interrupt register
   vcnl.readInterruptFlags();
 
   // Reset gesture trigger:
