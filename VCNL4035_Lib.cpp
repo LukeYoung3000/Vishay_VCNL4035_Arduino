@@ -6,11 +6,8 @@
  * @copyright	This code is public domain but you buy me a beer if you use
  * this and we meet someday (Beerware license).
  *
- * This library interfaces the Vishay VCNL4035 ambient light and proximity
- * sensor to Arduino over I2C.
- * The library relies on the Arduino Wire (I2C) library. To use the library,
- * instantiate a VCNL4035 object, call init(), and call the desired
- * functions.
+ * This file contains the portable (non hardware specific) function definitions
+ * used in the VCNL4035 class.
  */
 
 #include <Arduino.h>
@@ -63,9 +60,6 @@ void VCNL4035::init(VCNL4035_MODES mode)
 	default:
 		setPSMode();
 	}
-
-	/* Gather Backround Noise Data From VCNL */
-	// We will need the users Int time and LED current in order to find this.
 }
 
 /*******************************************************************************

@@ -78,7 +78,7 @@ void ISR_vcnl()
   interrupts();
 
   // Read Regs:
-  vcnl.readPsData(proxy_data);
+  vcnl.readGestureData(proxy_data);
 
   // Print Data:
   Serial.print(proxy_data[0]);

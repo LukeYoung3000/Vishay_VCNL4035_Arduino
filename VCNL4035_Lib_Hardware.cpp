@@ -1,3 +1,18 @@
+/**
+ * @file    VCNL4035_Lib_Hardware.cpp
+ * @brief   Library for the VCNL4035
+ * @author  Luke Young (L S Young Electrical)
+ *
+ * @copyright	This code is public domain but you buy me a beer if you use
+ * this and we meet someday (Beerware license).
+ *
+ * This file contains the hardware specific function definitions used in the
+ * VCNL4035 class. This file maps the relevent Arduino Wire I2C functions to 
+ * names that the VCNL4035 Class can use directly. The file can be adapted to
+ * interface with any microcontrollers I2C libray. It is the only file 
+ * in the libray that requires changeing to port this code to other devices.
+ */
+
 #include <Arduino.h>
 #include <Wire.h>
 
@@ -212,4 +227,18 @@ bool VCNL4035::i2cReadPsData(uint16_t *val)
 #endif
 
     return true;
+}
+
+/*******************************************************************************
+ * Hardware Interrupt Handling
+ ******************************************************************************/
+
+void VCNL4035::setIntPin(uint8_t int_pin)
+{
+    int_pin_ = int_pin;
+}
+
+bool VCNL4035::readInt()
+{
+    return (digitalRead(int_pin_));
 }

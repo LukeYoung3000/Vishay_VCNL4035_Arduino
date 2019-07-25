@@ -1,16 +1,14 @@
 /**
- * @file    vcnl4035_Defs.h
- * @brief   Arduino Library for the VCNL4035 - Definitions 
+ * @file    VCNL4035_Defs.h
+ * @brief   Library for the VCNL4035 - Definitions 
  * @author  Luke Young (L S Young Electrical)
  *
  * @copyright	This code is public domain but you buy me a beer if you use
  * this and we meet someday (Beerware license).
  *
- * This library interfaces the Vishay VCNL4035 ambient light and proximity
- * sensor to Arduino over I2C.
- * The library relies on the Arduino Wire (I2C) library. To use the library,
- * instantiate a VCNL4035 object, call init(), and call the desired
- * functions.
+ * This file provides the revevent enums and #defines for the VCNL4035
+ * class. It essentially maps all of the I2C register values from the VCNL4035
+ * data sheet. 
  */
 
 #ifndef VCNL_4035_Defs_H
@@ -53,6 +51,7 @@ typedef enum VCNL4035_MODES
 {
     GESTURE = 0,
     PROXIMITY_SENSOR = 1,
+    AMBIENT_LIGHT_SENSOR = 2,
 } VCNL4035_MODES;
 
 /* VCNL4035 Register Bit Locations */

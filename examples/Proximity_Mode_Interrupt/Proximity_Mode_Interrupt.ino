@@ -38,7 +38,7 @@ void loop()
 {
     delay(50);
     // Read proximity data from VCNL
-    vcnl.readPsData(proxy_data);
+    vcnl.readGestureData(proxy_data);
     // Print data
     Serial.println(proxy_data[0]);
 }

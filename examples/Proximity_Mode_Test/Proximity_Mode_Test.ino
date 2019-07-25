@@ -16,7 +16,7 @@ void setup()
 void loop()
 {
     delay(50);
-    vcnl.readPsData(proxy_data);
+    vcnl.readGestureData(proxy_data);
 
     // Print Data from IRED1:
     Serial.println(proxy_data[0]);
