@@ -75,8 +75,10 @@ public:
 	void setIntPin(uint8_t int_pin);
 
 	/* Proximity/Gesture Mode Settings */
-	ps_settings_t gesture_mode = {{0}, {0}, {0}, {0}, 0};
-	ps_settings_t ps_mode = {{0}, {0}, {0}, {0}, 0};
+	// ps_settings_t gesture_mode = {{0}, {0}, {0}, {0}, 0};
+	// ps_settings_t ps_mode = {{0}, {0}, {0}, {0}, 0};
+	ps_settings_t gesture_mode = {0};
+	ps_settings_t ps_mode = {0};
 
 private:
 	uint8_t addr_ = VISHAY_I2C_ADDR;

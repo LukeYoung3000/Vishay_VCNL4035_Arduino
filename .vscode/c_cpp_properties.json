@@ -3,12 +3,13 @@
         {
             "name": "Win32",
             "includePath": [
+                "C:\\Users\\Luke Young\\AppData\\Local\\Arduino15\\packages\\cytron\\hardware\\arm\\1.1.0\\**",
+                "C:\\Users\\Luke Young\\AppData\\Local\\Arduino15\\packages\\cytron\\tools\\**",
+                "C:\\Users\\Luke Young\\AppData\\Local\\Arduino15\\packages\\cytron\\hardware\\avr\\1.5.4\\**",
                 "C:\\\\Program Files (x86)\\\\Arduino\\\\tools\\\\**",
                 "C:\\\\Program Files (x86)\\\\Arduino\\\\hardware\\\\arduino\\\\avr\\\\**"
             ],
-            "forcedInclude": [
-                "C:\\\\Program Files (x86)\\\\Arduino\\\\hardware\\\\arduino\\\\avr\\\\cores\\\\arduino\\\\Arduino.h"
-            ],
+            "forcedInclude": [],
             "intelliSenseMode": "msvc-x64",
             "compilerPath": "C:\\cygwin64\\bin\\gcc.exe",
             "cStandard": "c11",

@@ -29,7 +29,9 @@ void VCNL4035::i2cBegin()
 }
 
 /**
- * @brief Writes a single byte to the I2C device (no register)
+ * @brief Writes a single byte to the I2C device and dose NOT send a stop
+ * condition after sending the byte. Only use this function when a repeated 
+ * start is needed.
  *
  * @param[in] val the 1-byte value to write to the I2C device
  * @return True if successful write operation. False otherwise.
@@ -38,10 +40,19 @@ bool VCNL4035::i2cWriteByte(uint8_t val)
 {
     Wire.beginTransmission(addr_);
     Wire.write(val);
+
+    /*
+    The code below that is commeneted out works fine for the UNO and MEGA however, the Cytron ARMs "Wire.endTransmission" function returns the number of bytes that were wrote to the TXbuffer NOT an error condition like the UNO
+    and MEGA.
+    */
+
+    Wire.endTransmission(false);
+    /*
     if (Wire.endTransmission(false) != 0)
     {
         return false;
-    }
+    } 
+    */
 
     return true;
 }
@@ -88,11 +99,26 @@ bool VCNL4035::i2cReadReg(uint8_t reg, uint16_t &val)
 
     /* Read from register */
     Wire.requestFrom(addr_, uint8_t(2));
+
+    // Old Read In Method (Has Bugs):
+    /*
     while (Wire.available())
     {
         // Possible over flow errors here
         bytes[i] = Wire.read();
         i++;
+    }
+    */
+
+    // New Read In Method:
+    for (i = 0; i < 2; i++)
+    {
+        // If there is no data in the I2C buffer the program will get stuck here
+        // So we need to add a time out here!
+        while (!Wire.available()) // Wait here until data arrives
+        {
+        }
+        bytes[i] = Wire.read();
     }
 
     bytes[1] = (bytes[1] << 8) + bytes[0];
@@ -200,18 +226,31 @@ bool VCNL4035::i2cReadPsData(uint16_t *val)
     uint8_t i = 0;
 
     Wire.beginTransmission(addr_);
-
-    /* Read from register */
     Wire.requestFrom(addr_, uint8_t(6));
+
+    // Old Read In Method (Has Bugs):
+    /* 
     while (Wire.available())
     {
         // Possible over flow errors here
         bytes[i] = Wire.read();
         i++;
     }
+    */
+
+    // New Read In Method:
+    for (i = 0; i < 6; i++)
+    {
+        // If there is no data in the I2C buffer the program will get stuck here
+        // So we need to add a time out here!
+        while (!Wire.available())
+        {
+        }
+        bytes[i] = Wire.read();
+    }
 
     uint16_t var = 0;
-    for (i = 0; i < 6; i++)
+    for (i = 0; i < 3; i++)
     {
         var = (bytes[2 * i + 1] << 8);
         val[i] = var + bytes[2 * i];

@@ -1,5 +1,6 @@
 {
-    "board": "arduino:avr:uno",
-    "sketch": "examples\\Gesture_Timeout\\Gesture_Timeout.ino",
-    "port": "COM7"
+    "board": "cytron:arm:nuvoton_nuc131",
+    "sketch": "examples\\Read_Gesture_Data_Polling\\Read_Gesture_Data_Polling.ino",
+    "port": "COM32",
+    "programmer": "AVRISP mkII"
 }

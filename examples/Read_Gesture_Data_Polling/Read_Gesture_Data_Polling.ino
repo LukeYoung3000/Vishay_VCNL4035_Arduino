@@ -16,16 +16,20 @@ void setup()
     vcnl.setIntPin(INTERRUPT_PIN);
     vcnl.init(GESTURE);
     vcnl.setPsIntegrationTime(PS_IT_400us);
-    vcnl.calcGestureNoise(10);
+    vcnl.setLedCurrent(LED_I_100_mA);
+    vcnl.calcGestureNoise(100);
     vcnl.setGestureNoiseSubtract(true);
 
     // Print Gesture Noise Calculations
-    Serial.println("Gesture Noise:");
-    Serial.print(vcnl.gesture_noise[0]);
-    Serial.print(", ");
-    Serial.print(vcnl.gesture_noise[1]);
-    Serial.print(", ");
-    Serial.println(vcnl.gesture_noise[2]);
+    if (1)
+    {
+        Serial.println("Gesture Noise:");
+        Serial.print(vcnl.gesture_noise_LDR1);
+        Serial.print(" , ");
+        Serial.print(vcnl.gesture_noise_LDR2);
+        Serial.print(" , ");
+        Serial.println(vcnl.gesture_noise_LDR3);
+    }
 }
 
 void loop()
@@ -36,9 +40,9 @@ void loop()
     {
         vcnl.getSensorData(sens_data);
         Serial.print(sens_data[0]);
-        Serial.print(", ");
+        Serial.print(" , ");
         Serial.print(sens_data[1]);
-        Serial.print(", ");
+        Serial.print(" , ");
         Serial.println(sens_data[2]);
     }
 }

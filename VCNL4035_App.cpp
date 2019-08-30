@@ -13,8 +13,29 @@
  */
 
 #include <Arduino.h>
+#include <math.h>
 
 #include "VCNL4035_App.h"
+
+/* Constructor */
+
+VCNL4035_Application::VCNL4035_Application()
+{
+    /* Inital Variable Settings */
+    gesture_noise_LDR1 = 0;
+    gesture_noise_LDR2 = 0;
+    gesture_noise_LDR3 = 0;
+    gesture_flags = {0};
+    current_mode = ACTIVE;
+    prev_mode = ACTIVE;
+    gesture_activity_threshold = 100;
+    sensor_data[0] = 0;
+    sensor_data[1] = 0;
+    sensor_data[2] = 0;
+    Z_value = 0;
+    X_value = 0;
+    ZX_min_threshold = 22;
+}
 
 /* Operational */
 
@@ -74,7 +95,8 @@ void VCNL4035_Application::ActiveLoop()
         // Calculate ZX cordinate
         if (gesture_flags.zx_enable)
         {
-            // Use data to calculate ZX ...
+            if (calcZXData())
+                gesture_flags.zx_data_ready = 1;
         }
 
         // Detect valid gestures
@@ -108,6 +130,12 @@ void VCNL4035_Application::calcGestureNoise(uint8_t number_of_readings)
     if (number_of_readings > 0)
     {
         uint16_t data[3];
+        float data_f0 = 0;
+        float data_f1 = 0;
+        float data_f2 = 0;
+        float gn_f0 = 0;
+        float gn_f1 = 0;
+        float gn_f2 = 0;
 
         for (uint8_t i = 0; i < number_of_readings; i++)
         {
@@ -115,28 +143,85 @@ void VCNL4035_Application::calcGestureNoise(uint8_t number_of_readings)
             setPsTrigger();
             while (readInt())
             {
+                // Arduino Function - Should use a proper timer
+                delay(1);
             }
             readGestureData(data);
-            gesture_noise[0] = gesture_noise[0] + data[0] / number_of_readings;
-            gesture_noise[1] = gesture_noise[1] + data[1] / number_of_readings;
-            gesture_noise[2] = gesture_noise[2] + data[2] / number_of_readings;
+            data_f0 = (float)data[0];
+            data_f1 = (float)data[1];
+            data_f2 = (float)data[2];
+
+            gn_f0 += data_f0 / (float)number_of_readings;
+            gn_f1 += data_f1 / (float)number_of_readings;
+            gn_f2 += data_f2 / (float)number_of_readings;
         }
+        gesture_noise_LDR1 = gn_f0;
+        gesture_noise_LDR2 = gn_f1;
+        gesture_noise_LDR3 = gn_f2;
     }
+}
+
+uint8_t VCNL4035_Application::calcZXData()
+{
+    double left = sensor_data[0];
+    double right = sensor_data[2];
+
+    uint8_t check = 0;
+    check = (left > ZX_min_threshold) && (right > ZX_min_threshold);
+
+    if (check)
+    {
+
+        double left_dis = 0;
+        double right_dis = 0;
+
+        double A_1 = 1200;
+        double B_1 = 60;
+        double k_1 = -0.6015;
+        double A_2 = 50;
+        double k_2 = 1;
+        double x = 0;
+
+        double A_3 = 6.5;
+        double B_3 = -0.0001;
+        double k_3 = 2;
+        double z = 0;
+
+        /* Range To Distance */
+        left_dis = (left + B_1);
+        left_dis = A_1 * pow(left_dis, k_1);
+        right_dis = (right + B_1);
+        right_dis = A_1 * pow(right_dis, k_1);
+
+        /* X Cordinate (Circle Intersection) */
+        x = pow(left_dis, k_2) - pow(right_dis, k_2);
+        x = A_2 * x;
+        X_value = (int16_t)x;
+
+        /* Z Cordinate */
+        z = B_3 * pow(fabs(x), k_3);
+        z += (left_dis + right_dis);
+        z *= A_3;
+        Z_value = (int16_t)z;
+    }
+    return check;
 }
 
 void VCNL4035_Application::subtractGestureNoise(uint16_t *data)
 {
-    for (uint8_t i = 0; i < 3; i++)
-    {
-        if (gesture_noise[i] >= data[i])
-        {
-            data[i] = 0;
-        }
-        else
-        {
-            data[i] = data[i] - gesture_noise[i];
-        }
-    }
+
+    if (gesture_noise_LDR1 >= data[0])
+        data[0] = 0;
+    else
+        data[0] -= gesture_noise_LDR1;
+    if (gesture_noise_LDR2 >= data[1])
+        data[1] = 0;
+    else
+        data[1] -= gesture_noise_LDR2;
+    if (gesture_noise_LDR3 >= data[2])
+        data[2] = 0;
+    else
+        data[2] -= gesture_noise_LDR3;
 }
 
 /* Checks */
@@ -158,6 +243,16 @@ bool VCNL4035_Application::isGestureActivity()
         return (false);
 }
 
+bool VCNL4035_Application::isZXDataReady()
+{
+    if (gesture_flags.zx_data_ready)
+    {
+        gesture_flags.zx_data_ready = 0;
+        return (1);
+    }
+    return (0);
+}
+
 /* Gets */
 void VCNL4035_Application::getSensorData(uint16_t *data)
 {
@@ -166,7 +261,7 @@ void VCNL4035_Application::getSensorData(uint16_t *data)
     data[2] = sensor_data[2];
 }
 
-void VCNL4035_Application::getZXData(uint16_t *Z, uint16_t *X)
+void VCNL4035_Application::getZXData(int16_t *Z, int16_t *X)
 {
     *Z = Z_value;
     *X = X_value;

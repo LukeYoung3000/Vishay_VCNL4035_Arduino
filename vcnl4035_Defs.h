@@ -333,12 +333,12 @@ typedef struct ps_ms_s
 
 typedef struct ps_settings_s
 {
+    uint16_t ps_thdl;
+    uint16_t ps_thdh;
     ps_conf_1_t ps_conf_1;
     ps_conf_2_t ps_conf_2;
     ps_conf_3_t ps_conf_3;
     ps_ms_t ps_ms;
-    uint16_t ps_thdl;
-    uint16_t ps_thdh;
 } ps_settings_t;
 
 #endif /* VCNL4035_Defs_H */
