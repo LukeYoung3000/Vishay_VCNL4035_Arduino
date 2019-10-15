@@ -6,8 +6,9 @@
 VCNL4035_Application vcnl;
 
 // Variable to store proximity data from all three sensors
-int16_t x = 0;
-int16_t z = 0;
+int16_t x_pos = 0;
+int16_t z_pos = 0;
+uint16_t sens_data[3];
 
 void setup()
 {
@@ -20,19 +21,23 @@ void setup()
     vcnl.setLedCurrent(LED_I_100_mA);
     vcnl.calcGestureNoise(100);
     vcnl.setGestureNoiseSubtract(true);
-    // Add ZX enable function
     vcnl.gesture_flags.zx_enable = 1;
+    vcnl.gesture_flags.zx_smooth_enable = 0;
+    vcnl.gesture_flags.orb_detect_enable = 1;
 }
 
 void loop()
 {
     vcnl.MainLoop();
 
-    if (vcnl.isZXDataReady())
+    if (vcnl.isOrbDataReady())
     {
-        vcnl.getZXData(&z, &x);
-        Serial.print(z);
-        Serial.print(", ");
-        Serial.println(x);
+        vcnl.getZXData(&z_pos, &x_pos);
+        Serial.print(z_pos);
+        Serial.print(" , ");
+        Serial.print(x_pos);
+        Serial.print(" , ");
+        vcnl.getSensorData(sens_data);
+        Serial.println(sens_data[1]);
     }
 }

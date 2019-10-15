@@ -35,6 +35,39 @@ VCNL4035_Application::VCNL4035_Application()
     Z_value = 0;
     X_value = 0;
     ZX_min_threshold = 22;
+
+    gesture_flags.orb_status = 0;
+    gesture_flags.orb_data_cnt = 0;
+    gesture_flags.orb_data_cnt_limit = 4;
+
+    ZX_coeff.A_1 = 1200;
+    ZX_coeff.B_1 = 60;
+    ZX_coeff.k_1 = -0.6015;
+    ZX_coeff.A_2 = 50;
+    ZX_coeff.k_2 = 1;
+    ZX_coeff.A_3 = 6.5;
+    ZX_coeff.B_3 = -0.0001;
+    ZX_coeff.k_3 = 2;
+
+    orb_cord.center_z_max = 850;
+    orb_cord.center_z_min = 200;
+    orb_cord.center_x_max = 80;
+    orb_cord.center_x_min = -80;
+    orb_cord.side_z_max = 750;
+    orb_cord.side_z_min = 170;
+    orb_cord.side_x_max = 440;
+    orb_cord.side_x_min = -440;
+    orb_cord.center_IRED_max = 2500;
+
+    orb_cord_leaving.center_z_max = 870;
+    orb_cord_leaving.center_z_min = 180;
+    orb_cord_leaving.center_x_max = 95;
+    orb_cord_leaving.center_x_min = -95;
+    orb_cord_leaving.side_z_max = 770;
+    orb_cord_leaving.side_z_min = 160;
+    orb_cord_leaving.side_x_max = 480;
+    orb_cord_leaving.side_x_min = -480;
+    orb_cord_leaving.center_IRED_max = 2700;
 }
 
 /* Operational */
@@ -95,14 +128,62 @@ void VCNL4035_Application::ActiveLoop()
         // Calculate ZX cordinate
         if (gesture_flags.zx_enable)
         {
-            if (calcZXData())
+            uint16_t left_data = sensor_data[0];
+            uint16_t right_data = sensor_data[2];
+            if (gesture_flags.zx_smooth_enable)
+            {
+                // Smooth the raw data
+                calcMovingMean(left_data, right_data);
+                left_data = mean_left_value;
+                right_data = mean_right_value;
+            }
+
+            if (calcZXData(left_data, right_data))
+            {
                 gesture_flags.zx_data_ready = 1;
+
+                // Orb Detection
+                if (gesture_flags.orb_detect_enable)
+                {
+                    if (calcOrb(Z_value, X_value))
+                    {
+                        gesture_flags.orb_data_ready = 1;
+
+                        if (gesture_flags.orb_data_cnt < gesture_flags.orb_data_cnt_limit)
+                        {
+                            gesture_flags.orb_data_cnt++;
+                        }
+                        else
+                        {
+                            gesture_flags.orb_status = 1;
+                        }
+                    }
+                    else
+                    {
+                        if (gesture_flags.orb_data_cnt > 0)
+                        {
+                            gesture_flags.orb_data_cnt--;
+                        }
+                        else
+                        {
+                            gesture_flags.orb_status = 0;
+                        }
+                    }
+                }
+            }
+            else
+            {
+                // Set orb status low if we go out of range
+                gesture_flags.orb_data_cnt = 0;
+                gesture_flags.orb_status = 0;
+            }
         }
 
-        // Detect valid gestures
+        // Detect Valid Gestures
         if (gesture_flags.gesture_recognition_enable)
         {
-            // Use data to calculate if a gesture has occurred ...
+            if (calcGestureRecognition())
+                gesture_flags.gesture_recognition_data_ready = 1;
         }
 
         // Set data ready flag
@@ -161,50 +242,79 @@ void VCNL4035_Application::calcGestureNoise(uint8_t number_of_readings)
     }
 }
 
-uint8_t VCNL4035_Application::calcZXData()
+uint8_t VCNL4035_Application::calcZXData(uint16_t left_data, uint16_t right_data)
 {
-    double left = sensor_data[0];
-    double right = sensor_data[2];
+    double left = left_data;
+    double right = right_data;
 
     uint8_t check = 0;
     check = (left > ZX_min_threshold) && (right > ZX_min_threshold);
 
     if (check)
     {
-
         double left_dis = 0;
         double right_dis = 0;
 
-        double A_1 = 1200;
-        double B_1 = 60;
-        double k_1 = -0.6015;
-        double A_2 = 50;
-        double k_2 = 1;
         double x = 0;
-
-        double A_3 = 6.5;
-        double B_3 = -0.0001;
-        double k_3 = 2;
         double z = 0;
 
         /* Range To Distance */
-        left_dis = (left + B_1);
-        left_dis = A_1 * pow(left_dis, k_1);
-        right_dis = (right + B_1);
-        right_dis = A_1 * pow(right_dis, k_1);
+        left_dis = (left + ZX_coeff.B_1);
+        left_dis = ZX_coeff.A_1 * pow(left_dis, ZX_coeff.k_1);
+        right_dis = (right + ZX_coeff.B_1);
+        right_dis = ZX_coeff.A_1 * pow(right_dis, ZX_coeff.k_1);
 
         /* X Cordinate (Circle Intersection) */
-        x = pow(left_dis, k_2) - pow(right_dis, k_2);
-        x = A_2 * x;
+        x = pow(left_dis, ZX_coeff.k_2) - pow(right_dis, ZX_coeff.k_2);
+        x = ZX_coeff.A_2 * x;
         X_value = (int16_t)x;
 
         /* Z Cordinate */
-        z = B_3 * pow(fabs(x), k_3);
+        z = ZX_coeff.B_3 * pow(fabs(x), ZX_coeff.k_3);
         z += (left_dis + right_dis);
-        z *= A_3;
+        z *= ZX_coeff.A_3;
         Z_value = (int16_t)z;
     }
     return check;
+}
+
+uint8_t VCNL4035_Application::calcOrb(int16_t Z, int16_t X)
+{
+    // Calculate if we are in the orb based on our current location
+    if (gesture_flags.orb_status)
+    {
+        return checkOrb(&orb_cord_leaving, Z, X);
+    }
+    else
+    {
+        return checkOrb(&orb_cord, Z, X);
+    }
+}
+
+uint8_t VCNL4035_Application::checkOrb(orb_cord_t *limits, int16_t Z, int16_t X)
+{
+    if (sensor_data[1] < limits->center_IRED_max)
+    {
+        uint8_t check = 0;
+        check = ((X < limits->center_x_max) &&
+                 (X > limits->center_x_min) &&
+                 (Z < limits->center_z_max) &&
+                 (Z > limits->center_z_min));
+
+        if (check)
+        {
+            return 1;
+        }
+        else if ((X < limits->side_x_max) &&
+                 (X > limits->side_x_min))
+        {
+            if ((Z < limits->side_z_max) && (Z > limits->side_z_min))
+            {
+                return 1;
+            }
+        }
+    }
+    return 0;
 }
 
 void VCNL4035_Application::subtractGestureNoise(uint16_t *data)
@@ -253,6 +363,26 @@ bool VCNL4035_Application::isZXDataReady()
     return (0);
 }
 
+bool VCNL4035_Application::isOrbDataReady()
+{
+    if (gesture_flags.orb_data_ready)
+    {
+        gesture_flags.orb_data_ready = 0;
+        return (1);
+    }
+    return (0);
+}
+
+bool VCNL4035_Application::isGestureRecognitionDataReady()
+{
+    if (gesture_flags.gesture_recognition_data_ready)
+    {
+        gesture_flags.gesture_recognition_data_ready = 0;
+        return (1);
+    }
+    return (0);
+}
+
 /* Gets */
 void VCNL4035_Application::getSensorData(uint16_t *data)
 {
@@ -265,6 +395,11 @@ void VCNL4035_Application::getZXData(int16_t *Z, int16_t *X)
 {
     *Z = Z_value;
     *X = X_value;
+}
+
+void VCNL4035_Application::getGestureRecognitionData(int16_t *delay_samples)
+{
+    *delay_samples = swipe_speed;
 }
 
 /* Settings */
@@ -289,4 +424,20 @@ void VCNL4035_Application::setSleepMode()
 void VCNL4035_Application::setActiveMode()
 {
     current_mode = ACTIVE;
+}
+
+void VCNL4035_Application::setZXEnable(uint8_t state)
+{
+    if (state > 0)
+        gesture_flags.zx_enable = 1;
+    else
+        gesture_flags.zx_enable = 0;
+}
+
+void VCNL4035_Application::setGestureRecognition(uint8_t state)
+{
+    if (state > 0)
+        gesture_flags.gesture_recognition_enable = 1;
+    else
+        gesture_flags.gesture_recognition_enable = 0;
 }

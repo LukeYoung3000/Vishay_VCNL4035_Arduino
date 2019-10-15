@@ -21,7 +21,7 @@
 
 /* Acceptable VCNL4035 version */
 #define VISHAY_VERSION_LSB 0x80
-#define VISHAY_VERSION_LSB 0x00
+#define VISHAY_VERSION_MSB 0x00
 
 /* VCNL4035 I2C slave address */
 #define VISHAY_I2C_ADDR 0x60

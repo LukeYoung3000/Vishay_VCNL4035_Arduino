@@ -14,17 +14,18 @@ VCNL4035_Application vcnl;
 // Stats Global Varribles
 myStats stat_left;
 myStats stat_right;
-int sample_skip = 2;
-int cnt = 1;
-uint16_t std_trigger = 25;
 uint16_t gesture_state_machine = 0;
+int cnt = 1;
 uint16_t left_buf[GESTURE_BUF_SIZE] = {0};
 uint16_t right_buf[GESTURE_BUF_SIZE] = {0};
 int i_left = 0;
 int i_right = 0;
-
 // Timer Object
-Timer_ms gesture_timeout(2000);
+Timer_ms gesture_timeout(1000);
+
+// Stats Parameters
+int sample_skip = 2;
+uint16_t std_trigger = 25;
 
 // Sensor Data Array
 uint16_t sens_data[3] = {0};
